@@ -1,0 +1,6 @@
+{
+  "name": "StudyNest",
+  "description": "Academic study companion to organize books, chapters, and notes with progress tracking, deadlines, and analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

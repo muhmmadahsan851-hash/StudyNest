@@ -1,0 +1,128 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile and study preference settings",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "dailyGoalMinutes": { "type": "integer" },
+        "streakDays": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "displayName", "dailyGoalMinutes", "createdAt"]
+    },
+    "Book": {
+      "title": "Book",
+      "description": "Book or textbook entry with category and progress",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "author": { "type": "string" },
+        "category": { "type": "string" },
+        "colorTag": { "type": "string" },
+        "totalChapters": { "type": "integer" },
+        "completedChapters": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "title", "author", "category", "colorTag", "totalChapters", "completedChapters", "createdAt"]
+    },
+    "Chapter": {
+      "title": "Chapter",
+      "description": "Chapter breakdown within a specific book",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "bookId": { "type": "string" },
+        "chapterNumber": { "type": "integer" },
+        "title": { "type": "string" },
+        "isCompleted": { "type": "boolean" },
+        "pageCount": { "type": "integer" },
+        "estimatedMinutes": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "bookId", "chapterNumber", "title", "isCompleted", "createdAt"]
+    },
+    "Note": {
+      "title": "Note",
+      "description": "Rich chapter notes and key takeaways",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "bookId": { "type": "string" },
+        "chapterId": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "tag": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "bookId", "chapterId", "title", "content", "tag", "createdAt"]
+    },
+    "Deadline": {
+      "title": "Deadline",
+      "description": "Upcoming exam or assignment deadline with reminder alert",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "bookTitle": { "type": "string" },
+        "dueDateEpochMs": { "type": "integer" },
+        "isCompleted": { "type": "boolean" },
+        "urgency": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "title", "dueDateEpochMs", "isCompleted", "urgency", "createdAt"]
+    },
+    "StudyLog": {
+      "title": "StudyLog",
+      "description": "Daily study session log for tracking time and streak",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "dateStr": { "type": "string" },
+        "minutesStudied": { "type": "integer" },
+        "category": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "dateStr", "minutesStudied", "category", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Root user profiles and study settings"
+    },
+    "/users/{userId}/books/{bookId}": {
+      "schema": { "$ref": "#/entities/Book" },
+      "description": "User textbooks and books"
+    },
+    "/users/{userId}/books/{bookId}/chapters/{chapterId}": {
+      "schema": { "$ref": "#/entities/Chapter" },
+      "description": "Chapters belonging to a book"
+    },
+    "/users/{userId}/notes/{noteId}": {
+      "schema": { "$ref": "#/entities/Note" },
+      "description": "User study notes"
+    },
+    "/users/{userId}/deadlines/{deadlineId}": {
+      "schema": { "$ref": "#/entities/Deadline" },
+      "description": "User exam and assignment deadlines"
+    },
+    "/users/{userId}/studyLogs/{logId}": {
+      "schema": { "$ref": "#/entities/StudyLog" },
+      "description": "User daily study minutes logs"
+    }
+  }
+}

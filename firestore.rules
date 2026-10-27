@@ -1,0 +1,197 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidUserProfile(data) {
+      return data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+             data.displayName is string && data.displayName.size() > 0 && data.displayName.size() <= 100 &&
+             (!('email' in data) || data.email == null || (data.email is string && data.email.size() <= 150)) &&
+             data.dailyGoalMinutes is int && data.dailyGoalMinutes >= 5 && data.dailyGoalMinutes <= 1440 &&
+             (!('streakDays' in data) || data.streakDays is int) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             (!('updatedAt' in data) || data.updatedAt == null || (data.updatedAt is timestamp && data.updatedAt <= request.time));
+    }
+
+    function isValidBook(data) {
+      return data.id is string && data.id.size() > 0 && data.id.size() <= 128 &&
+             data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+             data.author is string && data.author.size() <= 150 &&
+             data.category is string && data.category.size() > 0 && data.category.size() <= 50 &&
+             data.colorTag is string && data.colorTag.size() > 0 && data.colorTag.size() <= 30 &&
+             data.totalChapters is int && data.totalChapters >= 0 && data.totalChapters <= 1000 &&
+             data.completedChapters is int && data.completedChapters >= 0 && data.completedChapters <= 1000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             (!('updatedAt' in data) || data.updatedAt == null || (data.updatedAt is timestamp && data.updatedAt <= request.time));
+    }
+
+    function isValidChapter(data) {
+      return data.id is string && data.id.size() > 0 && data.id.size() <= 128 &&
+             data.bookId is string && data.bookId.size() > 0 && data.bookId.size() <= 128 &&
+             data.chapterNumber is int && data.chapterNumber >= 0 && data.chapterNumber <= 1000 &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+             data.isCompleted is bool &&
+             (!('pageCount' in data) || data.pageCount is int) &&
+             (!('estimatedMinutes' in data) || data.estimatedMinutes is int) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             (!('updatedAt' in data) || data.updatedAt == null || (data.updatedAt is timestamp && data.updatedAt <= request.time));
+    }
+
+    function isValidNote(data) {
+      return data.id is string && data.id.size() > 0 && data.id.size() <= 128 &&
+             data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+             data.bookId is string && data.bookId.size() > 0 && data.bookId.size() <= 128 &&
+             data.chapterId is string && data.chapterId.size() > 0 && data.chapterId.size() <= 128 &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+             data.content is string && data.content.size() <= 50000 &&
+             data.tag is string && data.tag.size() <= 50 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             (!('updatedAt' in data) || data.updatedAt == null || (data.updatedAt is timestamp && data.updatedAt <= request.time));
+    }
+
+    function isValidDeadline(data) {
+      return data.id is string && data.id.size() > 0 && data.id.size() <= 128 &&
+             data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+             (!('bookTitle' in data) || data.bookTitle is string) &&
+             data.dueDateEpochMs is int && data.dueDateEpochMs > 0 &&
+             data.isCompleted is bool &&
+             data.urgency is string && (data.urgency == 'low' || data.urgency == 'medium' || data.urgency == 'high') &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             (!('updatedAt' in data) || data.updatedAt == null || (data.updatedAt is timestamp && data.updatedAt <= request.time));
+    }
+
+    function isValidStudyLog(data) {
+      return data.id is string && data.id.size() > 0 && data.id.size() <= 128 &&
+             data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+             data.dateStr is string && data.dateStr.size() >= 8 && data.dateStr.size() <= 20 &&
+             data.minutesStudied is int && data.minutesStudied >= 1 && data.minutesStudied <= 1440 &&
+             data.category is string && data.category.size() <= 50 &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    match /users/{userId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       incoming().userId == userId &&
+                       isValidUserProfile(incoming());
+      allow update: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       isValidUserProfile(incoming());
+      allow delete: if isOwner(userId);
+
+      // Books subcollection
+      match /books/{bookId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(bookId) &&
+                         incoming().id == bookId &&
+                         incoming().userId == userId &&
+                         isValidBook(incoming());
+        allow update: if isOwner(userId) &&
+                         isValidId(bookId) &&
+                         incoming().id == existing().id &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         isValidBook(incoming());
+        allow delete: if isOwner(userId) && isValidId(bookId);
+
+        // Chapters subcollection
+        match /chapters/{chapterId} {
+          allow get, list: if isOwner(userId);
+          allow create: if isOwner(userId) &&
+                           isValidId(chapterId) &&
+                           incoming().id == chapterId &&
+                           incoming().bookId == bookId &&
+                           isValidChapter(incoming());
+          allow update: if isOwner(userId) &&
+                           isValidId(chapterId) &&
+                           incoming().id == existing().id &&
+                           incoming().bookId == existing().bookId &&
+                           incoming().createdAt == existing().createdAt &&
+                           isValidChapter(incoming());
+          allow delete: if isOwner(userId) && isValidId(chapterId);
+        }
+      }
+
+      // Notes subcollection
+      match /notes/{noteId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(noteId) &&
+                         incoming().id == noteId &&
+                         incoming().userId == userId &&
+                         isValidNote(incoming());
+        allow update: if isOwner(userId) &&
+                         isValidId(noteId) &&
+                         incoming().id == existing().id &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         isValidNote(incoming());
+        allow delete: if isOwner(userId) && isValidId(noteId);
+      }
+
+      // Deadlines subcollection
+      match /deadlines/{deadlineId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(deadlineId) &&
+                         incoming().id == deadlineId &&
+                         incoming().userId == userId &&
+                         isValidDeadline(incoming());
+        allow update: if isOwner(userId) &&
+                         isValidId(deadlineId) &&
+                         incoming().id == existing().id &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         isValidDeadline(incoming());
+        allow delete: if isOwner(userId) && isValidId(deadlineId);
+      }
+
+      // StudyLogs subcollection
+      match /studyLogs/{logId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(logId) &&
+                         incoming().id == logId &&
+                         incoming().userId == userId &&
+                         isValidStudyLog(incoming());
+        allow update: if isOwner(userId) &&
+                         isValidId(logId) &&
+                         incoming().id == existing().id &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         isValidStudyLog(incoming());
+        allow delete: if isOwner(userId) && isValidId(logId);
+      }
+    }
+  }
+}

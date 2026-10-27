@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:translateX="22"
+        android:translateY="22">
+        <!-- Open Academic Book and Study Emblem (64x64) -->
+        <!-- Left Book Page -->
+        <path
+            android:fillColor="#F8FAFC"
+            android:pathData="M8,12 C16,9 26,11 31,14 L31,50 C26,47 16,45 8,48 Z" />
+        <!-- Right Book Page -->
+        <path
+            android:fillColor="#E2E8F0"
+            android:pathData="M33,14 C38,11 48,9 56,12 L56,48 C48,45 38,47 33,50 Z" />
+        <!-- Book Spine Highlight -->
+        <path
+            android:fillColor="#4F46E5"
+            android:pathData="M31,14 L33,14 L33,51 L31,51 Z" />
+        <!-- Bookmark Ribbon -->
+        <path
+            android:fillColor="#F59E0B"
+            android:pathData="M30,12 L34,12 L34,28 L32,26 L30,28 Z" />
+        <!-- Graduation Cap / Achievement Star at top -->
+        <path
+            android:fillColor="#FCD34D"
+            android:pathData="M32,2 L34,7 L39,7 L35,10 L37,15 L32,12 L27,15 L29,10 L25,7 L30,7 Z" />
+    </group>
+</vector>
